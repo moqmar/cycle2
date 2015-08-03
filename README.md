@@ -1,5 +1,8 @@
 # Cycle2 - 2nd Generation Cycling!
 
+## About This Fork
+This fork is all about adding CSS3 transitions to Cycle2, based on a [CodersClan task](https://www.codersclan.net/ticket/1721) by ***rdck***.
+
 ## Getting Started
 Download either the [production version][min] or the [development version][max] of Cycle2.
 
