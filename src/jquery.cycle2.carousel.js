@@ -28,7 +28,7 @@ $.fn.cycle.transitions.carousel = {
     // transition API impl
     preInit: function( opts ) {
         opts.hideNonActive = false;
-        
+
         opts.container.on('cycle-destroyed', $.proxy(this.onDestroy, opts.API));
         // override default API implementation
         opts.API.stopTransition = this.stopTransition;
@@ -36,7 +36,7 @@ $.fn.cycle.transitions.carousel = {
         // issue #10
         for (var i=0; i < opts.startingSlide; i++) {
             opts.container.append( opts.slides[0] );
-        }        
+        }
     },
 
     // transition API impl
@@ -188,7 +188,7 @@ $.fn.cycle.transitions.carousel = {
             else if ( hops < 0 && opts.currSlide > maxCurr ) {
                 hops += opts.currSlide - maxCurr;
             }
-            else 
+            else
                 currSlide = opts.currSlide;
 
             moveBy = this.getScroll( opts, vert, currSlide, hops );
@@ -217,7 +217,7 @@ $.fn.cycle.transitions.carousel = {
         if ( opts.throttleSpeed )
             speed = (moveBy / $(opts.slides[0])[vert ? 'height' : 'width']() ) * opts.speed;
 
-        opts._carouselWrap.animate( props, speed, opts.easing, callback );
+        opts._carouselWrap.css3animate( props, speed, opts.easing, callback );
     },
 
     getDim: function( opts, index, vert ) {

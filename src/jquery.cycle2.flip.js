@@ -34,7 +34,7 @@ else {
     tx.flipVert = tx.scrollVert || tx.scrollHorz;
 }
 
-    
+
 function getTransition( rotateFn ) {
     // return C2 transition object
     return {
@@ -43,7 +43,7 @@ function getTransition( rotateFn ) {
         },
         transition: function( slideOpts, currEl, nextEl, fwd, callback ) {
             var opts = slideOpts,
-                curr = $(currEl), 
+                curr = $(currEl),
                 next = $(nextEl),
                 speed = opts.speed / 2;
 
@@ -58,13 +58,13 @@ function getTransition( rotateFn ) {
 
             curr.css('background-position', '0px');
 
-            curr.animate({ backgroundPosition: 90 }, {
+            curr.css3animate({ backgroundPosition: 90 }, {
                 step: rotateFn,
                 duration: speed,
                 easing: opts.easeOut || opts.easing,
                 complete: function() {
                     slideOpts.API.updateView( false, true );
-                    next.animate({ backgroundPosition: 0 }, {
+                    next.css3animate({ backgroundPosition: 0 }, {
                         step: rotateFn,
                         duration: speed,
                         easing: opts.easeIn || opts.easing,
@@ -82,7 +82,7 @@ function getRotate( dir ) {
         var el = $(this);
         el.css({
             '-webkit-transform': 'rotate'+dir+'('+degrees+'deg)',
-            '-moz-transform': 'rotate'+dir+'('+degrees+'deg)', 
+            '-moz-transform': 'rotate'+dir+'('+degrees+'deg)',
             '-ms-transform': 'rotate'+dir+'('+degrees+'deg)',
             '-o-transform': 'rotate'+dir+'('+degrees+'deg)',
             'transform': 'rotate'+dir+'('+degrees+'deg)'

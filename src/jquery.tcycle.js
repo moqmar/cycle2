@@ -23,10 +23,10 @@ return this.each(function(){
 			a.fadeOut(z);
 			b.fadeIn(z,tfn);
 		}else{
-			a.animate({left:-w},z,function(){
+			a.css3animate({left:-w},z,function(){
 				a.hide();
 			});
-			b.css({'left':w,display:'block'}).animate({left:0},z,tfn);
+			b.css({'left':w,display:'block'}).css3animate({left:0},z,tfn);
 		}
 		i = i==(l-1) ? 0 : (i+1);
 	}

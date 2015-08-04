@@ -24,7 +24,7 @@ $.fn.cycle = function( options ) {
         if ( container.data('cycle.opts') )
             return; // already initialized
 
-        if ( container.data('cycle-log') === false || 
+        if ( container.data('cycle-log') === false ||
             ( options && options.log === false ) ||
             ( opts && opts.log === false) ) {
             log = $.noop;
@@ -70,6 +70,142 @@ $.fn.cycle = function( options ) {
     });
 };
 
+$.fn.css3animate = function(properties, duration, easing, complete) {
+    var options = {};
+    if (typeof(duration) == "object") {
+        options = duration;
+        duration = options.duration;
+        easing = options.easing;
+        if (options.specialEasing) {
+            console.log("specialEasing is not yet supported by Cycle2 CSS3!");
+            return $(this).animate(properties, options, easing, complete);
+        }
+        if (options.step) {
+            console.log("For Cycle2 CSS3 transitions, step() is not available.");
+            return $(this).animate(properties, options, easing, complete);
+        }
+        if (options.progress) {
+            console.log("For Cycle2 CSS3 transitions, progress() is not available.");
+            return $(this).animate(properties, options, easing, complete);
+        }
+        complete = function() {
+            if (options.complete) options.complete.call($(this));
+            if (options.done) options.done.call($(this));
+            if (options.always) options.done.call($(always));
+        };
+        if (options.start) options.start.call($(this));
+    }
+
+    function unique() {
+        function d() { return String("000000000000" + new Date().getTime().toString(16)).slice(-12); }
+        function s() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
+        return s() + s() + '-' + s() + '-' + s() + '-' + s() + '-' + d();
+    }
+    var id = unique();
+
+    function resolveTransition(transition) {
+        $("body").append($("<div id=\"cycle2-transition-detect\"/>"));
+        $("#cycle2-transition-detect").css("transition", transition);
+        transition = jQuery.css($("#cycle2-transition-detect")[0], "transition", "");
+        $("#cycle2-transition-detect").remove();
+        return transition;
+    }
+    if (window.defaultTransition === undefined) {
+        $("body").append($("<div id=\"cycle2-transition-detect\"/>"));
+        window.defaultTransition = resolveTransition("");
+        $("#cycle2-transition-detect").remove();
+    }
+
+    function addTransition(e, pr, du, ea) {
+        var transitions = jQuery.css(e, "transition");
+        var oldTransitions = transitions;
+        transitions = transitions.split(/\s*,\s*/);
+        if ((transitions.length === 1 && transitions[0].trim() === "") ||
+            (transitions.length === 1 && transitions[0] == defaultTransition)) transitions = [];
+
+        if (transitions.indexOf(resolveTransition(pr + " " + du + " " + ea)) === -1)
+            transitions.push(pr + " " + du + " " + ea);
+
+        transitions = transitions.join(", ");
+
+        $(e).css({
+            WebkitTransition : transitions,
+            MozTransition    : transitions,
+            MsTransition     : transitions,
+            OTransition      : transitions,
+            transition       : transitions
+        });
+
+        return function() {
+            $(this.element).css({
+                WebkitTransition : this.transitions,
+                MozTransition    : this.transitions,
+                MsTransition     : this.transitions,
+                OTransition      : this.transitions,
+                transition       : this.transitions
+            });
+        }.bind({
+            element: e,
+            transitions: oldTransitions
+        });
+    }
+
+    var animations = {
+        element: $(this),
+        duration: duration,
+        easing: easing,
+        properties: properties,
+        callback: complete
+    };
+
+    easing = easing || "ease";
+    easing = easing.toLowerCase();
+    if (["ease", "linear", "ease-in", "ease-out", "ease-in-out", "initial", "inherit"].indexOf(easing) === -1 && easing.indexOf("cubic-bezier") !== 0) {
+        console.log("Invalid CSS3 animation timing function. Using default: ease");
+        easing = "ease";
+    }
+
+    duration = duration || 400;
+    if (duration === "fast") duration = 200;
+    if (duration === "slow") duration = 600;
+    if (isNaN(parseInt(duration, 10))) {
+        console.log("Invalid CSS3 animation duration \"" + duration + "\". Using default: 400");
+        duration = 400;
+    }
+    var cssduration = (parseInt(duration, 10) / 1000) + "s";
+
+    //Prepare transitions
+    var css3 = []; var css3reset = [];
+    function tadd(i,e) {
+        if (jQuery.css(e, prop, "") !== undefined) { //It's a CSS property
+            css3reset.push(addTransition(e, prop, cssduration, easing));
+            css3.push(prop);
+        }
+    }
+    for (var prop in properties) if (properties.hasOwnProperty(prop))
+        this.each(tadd);
+
+    //Run transitions
+    animations.css3 = css3;
+    animations.css3reset = css3reset;
+    setTimeout(function() {
+        for (var prop in this.properties) if (properties.hasOwnProperty(prop)) {
+            if (this.css3.indexOf(prop) !== -1) { //CSS3
+                this.element.css(prop, this.properties[prop]);
+            } else { //jQuery fallback
+                this.animate({prop: this.properties[prop]}, this.duration, (this.easing === "linear" ? "linear" : "ease"));
+            }
+        }
+        setTimeout(function() {
+            for (var i = 0; i < this.css3reset.length; i++)
+                this.css3reset[i]();
+            if (this.callback) this.callback.call(this.element);
+        }.bind(this), this.duration + 70);
+    }.bind(animations), 20);
+
+    return $(this);
+};
+
 $.fn.cycle.API = {
     opts: function() {
         return this._container.data( 'cycle.opts' );
@@ -79,7 +215,7 @@ $.fn.cycle.API = {
         var slides = opts.slides;
         opts.slideCount = 0;
         opts.slides = $(); // empty set
-        
+
         // add slides that already exist
         slides = slides.jquery ? slides : opts.container.find( slides );
 
@@ -129,7 +265,7 @@ $.fn.cycle.API = {
                 pauseObj = $( opts.pauseOnHover );
 
             pauseObj.hover(
-                function(){ opts.API.pause( true ); }, 
+                function(){ opts.API.pause( true ); },
                 function(){ opts.API.resume( true ); }
             );
         }
@@ -152,7 +288,7 @@ $.fn.cycle.API = {
             alreadyPaused = opts.hoverPaused || opts.paused;
 
         if ( hover )
-            opts.hoverPaused = true; 
+            opts.hoverPaused = true;
         else
             opts.paused = true;
 
@@ -163,7 +299,7 @@ $.fn.cycle.API = {
             if ( slideOpts.timeout ) {
                 clearTimeout( opts.timeoutId );
                 opts.timeoutId = 0;
-                
+
                 // determine how much time is left for the current slide
                 opts._remainingTimeout -= ( $.now() - opts._lastQueue );
                 if ( opts._remainingTimeout < 0 || isNaN(opts._remainingTimeout) )
@@ -178,11 +314,11 @@ $.fn.cycle.API = {
             remaining;
 
         if ( hover )
-            opts.hoverPaused = false; 
+            opts.hoverPaused = false;
         else
             opts.paused = false;
 
-    
+
         if ( ! alreadyResumed ) {
             opts.container.removeClass('cycle-paused');
             // #gh-230; if an animation is in progress then don't queue a new transition; it will
@@ -332,9 +468,9 @@ $.fn.cycle.API = {
 
         // ensure that:
         //      1. advancing to a different slide
-        //      2. this is either a manual event (prev/next, pager, cmd) or 
+        //      2. this is either a manual event (prev/next, pager, cmd) or
         //              a timer event and slideshow is not paused
-        if ( opts.nextSlide != opts.currSlide && 
+        if ( opts.nextSlide != opts.currSlide &&
             (manual || (!opts.paused && !opts.hoverPaused && opts.timeout) )) { // #62
 
             opts.API.trigger('cycle-before', [ slideOpts, curr, next, fwd ]);
@@ -373,11 +509,11 @@ $.fn.cycle.API = {
         var curr = $(currEl), next = $(nextEl);
         var fn = function() {
             // make sure animIn has something so that callback doesn't trigger immediately
-            next.animate(opts.animIn || { opacity: 1}, opts.speed, opts.easeIn || opts.easing, callback);
+            next.css3animate(opts.animIn || { opacity: 1}, opts.speed, opts.easeIn || opts.easing, callback);
         };
 
         next.css(opts.cssBefore || {});
-        curr.animate(opts.animOut || {}, opts.speed, opts.easeOut || opts.easing, function() {
+        curr.css3animate(opts.animOut || {}, opts.speed, opts.easeOut || opts.easing, function() {
             curr.css(opts.cssAfter || {});
             if (!opts.sync) {
                 fn();
@@ -407,7 +543,7 @@ $.fn.cycle.API = {
             return;
         }
         if ( opts.continueAuto !== undefined ) {
-            if ( opts.continueAuto === false || 
+            if ( opts.continueAuto === false ||
                 ($.isFunction(opts.continueAuto) && opts.continueAuto() === false )) {
                 opts.API.log('terminating automatic transitions');
                 opts.timeout = 0;
@@ -422,8 +558,8 @@ $.fn.cycle.API = {
                 opts._remainingTimeout = slideOpts.timeout;
 
             if ( !opts.paused && ! opts.hoverPaused ) {
-                opts.timeoutId = setTimeout(function() { 
-                    opts.API.prepareTx( false, !opts.reverse ); 
+                opts.timeoutId = setTimeout(function() {
+                    opts.API.prepareTx( false, !opts.reverse );
                 }, timeout );
             }
         }
@@ -446,7 +582,7 @@ $.fn.cycle.API = {
         clearTimeout(opts.timeoutId);
         opts.timeoutId = 0;
         opts.nextSlide = opts.currSlide + val;
-        
+
         if (opts.nextSlide < 0)
             opts.nextSlide = opts.slides.length - 1;
         else if (opts.nextSlide >= opts.slides.length)
@@ -495,7 +631,7 @@ $.fn.cycle.API = {
         var slideOpts = $(slide).data('cycle.opts');
         return $.extend( {}, opts, slideOpts );
     },
-    
+
     initSlide: function( slideOpts, slide, suggestedZindex ) {
         var opts = this.opts();
         slide.css( slideOpts.slideCss || {} );
@@ -540,7 +676,7 @@ $.fn.cycle.API = {
 
         if ( opts.updateView !== 0 )
             opts.API.trigger('cycle-update-view', [ opts, slideOpts, currSlide, isAfter ]);
-        
+
         if ( isAfter )
             opts.API.trigger('cycle-update-view-after', [ opts, slideOpts, currSlide ]);
     },
@@ -554,7 +690,7 @@ $.fn.cycle.API = {
         }
         if (selector.jquery)
             return selector;
-        
+
         return $(selector);
     },
 

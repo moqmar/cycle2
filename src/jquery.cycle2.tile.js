@@ -61,7 +61,7 @@ $.fn.cycle.transitions.tileBlind = {
         tilesContainer.css({
             zIndex: $curr.css('z-index'),
             overflow: 'visible',
-            position: 'absolute', 
+            position: 'absolute',
             top: 0,
             left: 0,
             direction: 'ltr' // #250
@@ -96,7 +96,7 @@ $.fn.cycle.transitions.tileBlind = {
             visibility: 'visible'
         });
         animateTile(fwd ? 0 : num - 1);
-        
+
         opts._tileAniCallback = function() {
             $next.css({
                 display: 'block',
@@ -108,7 +108,7 @@ $.fn.cycle.transitions.tileBlind = {
         };
 
         function animateTile(i) {
-            tiles.eq(i).animate( animCSS, {
+            tiles.eq(i).css3animate( animCSS, {
                 duration: opts.speed,
                 easing: opts.easing,
                 complete: function () {

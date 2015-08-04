@@ -19,19 +19,19 @@ $.fn.cycle.transitions.shuffle = {
 
         if ( opts.shuffleLeft !== undefined ) {
             props1.left = props1.left + parseInt(opts.shuffleLeft, 10) || 0;
-        } 
+        }
         else if ( opts.shuffleRight !== undefined ) {
             props1.left = width + parseInt(opts.shuffleRight, 10) || 0;
-        } 
+        }
         if ( opts.shuffleTop ) {
             props1.top = opts.shuffleTop;
         }
 
         // transition slide in 3 steps: move, re-zindex, move
         $( element )
-            .animate( props1, speed, opts.easeIn || opts.easing )
+            .css3animate( props1, speed, opts.easeIn || opts.easing )
             .queue( 'fx', $.proxy(reIndex, this))
-            .animate( props2, speed, opts.easeOut || opts.easing, callback );
+            .css3animate( props2, speed, opts.easeOut || opts.easing, callback );
 
         function reIndex(nextFn) {
             /*jshint validthis:true */
